@@ -1,5 +1,4 @@
 from PIL import Image
-from scipy.stats import skew, kurtosis
 from skimage import feature
 import streamlit as st
 from streamlit_cropper import st_cropper
@@ -12,12 +11,26 @@ with open('model.pkl', 'rb') as file:
     model = pickle.load(file)
 
 # ================= FEATURE FUNCTIONS =================
+def skewness(x):
+    mean = np.mean(x)
+    std = np.std(x)
+    if std == 0:
+        return 0
+    return np.mean(((x - mean) / std) ** 3)
+
+def kurtosis_val(x):
+    mean = np.mean(x)
+    std = np.std(x)
+    if std == 0:
+        return 0
+    return np.mean(((x - mean) / std) ** 4) - 3
+
 def calculate_statistics(hist):
     mean = np.mean(hist)
     std_dev = np.std(hist)
-    skewness = skew(hist)
-    kurt = kurtosis(hist)
-    return [mean, std_dev, skewness, kurt]
+    skewness_val = skewness(hist)
+    kurt_val = kurtosis_val(hist)
+    return [mean, std_dev, skewness_val, kurt_val]
 
 def extract_hog_hsv_features(image_bgr):
     # Resize konsisten (sesuai training)
