@@ -53,11 +53,18 @@ def extract_hog_hsv_features(image_bgr):
 
     return np.concatenate([hog_features, stats])
 
-def predict_flower(image_bgr):
+def predict_flower_with_confidence(image_bgr, threshold=0.50):
     features = extract_hog_hsv_features(image_bgr)
     features = np.array(features).reshape(1, -1)
-    pred = model.predict(features)
-    return pred[0]
+
+    probs = model.predict_proba(features)[0]
+    best_class = np.argmax(probs)
+    confidence = probs[best_class]
+
+    if confidence < threshold:
+        return None, confidence
+
+    return best_class, confidence
 
 # ================= STREAMLIT APP =================
 st.title("Flower Classification in Hindu Worship")
@@ -86,7 +93,7 @@ if uploaded_images:
         img_np = np.array(cropped_img)
         img_bgr = cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR)
 
-        pred = predict_flower(img_bgr)
+        pred, confidence = predict_flower_with_confidence(img_bgr)
 
         # ===== OUTPUT =====
         if pred in [0, 4]:
